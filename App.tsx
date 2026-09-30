@@ -756,7 +756,7 @@ function ScheduleDatePicker({ month, mode, selectedKeys, theme, onMonthChange, o
 }
 
 function ScheduleCard({ time, title, category, color, mode, completed, onToggle, onEdit, onDelete, onSwipeTouchChange, theme }: Schedule & { onToggle: () => void; onEdit: () => void; onDelete: () => void; onSwipeTouchChange: (active: boolean) => void; theme: AppTheme }) {
-  const actionWidth = 116;
+  const actionWidth = 132;
   const reduceMotion = useReducedMotion();
   const translateX = useRef(new Animated.Value(0)).current;
   const open = useRef(false);
@@ -770,7 +770,10 @@ function ScheduleCard({ time, title, category, color, mode, completed, onToggle,
     onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 8 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.35,
     onPanResponderGrant: () => { gestureOrigin.current = open.current ? -actionWidth : 0; },
     onPanResponderMove: (_, gesture) => translateX.setValue(Math.max(-actionWidth, Math.min(0, gestureOrigin.current + gesture.dx))),
-    onPanResponderRelease: (_, gesture) => settle(gestureOrigin.current + gesture.dx < -actionWidth * 0.42 || gesture.vx < -0.45),
+    onPanResponderRelease: (_, gesture) => {
+      if (open.current && (gesture.dx > 7 || gesture.vx > 0.12)) { settle(false); return; }
+      settle(gestureOrigin.current + gesture.dx < -actionWidth * 0.42 || gesture.vx < -0.45);
+    },
     onPanResponderTerminate: () => settle(open.current),
   }), [reduceMotion, translateX]);
   useEffect(() => () => translateX.stopAnimation(), [translateX]);
@@ -972,7 +975,7 @@ const styles = StyleSheet.create({
   calendarKeywordText: { color: '#24344F', fontSize: 7.5, fontWeight: '700', lineHeight: 8, textAlign: 'center' },
   unlabeledScheduleDot: { backgroundColor: '#17243D', borderRadius: 2, height: 4, marginTop: 1, width: 4 },
   scheduleMetaRow: { alignItems: 'center', flexDirection: 'row', gap: 6 }, scheduleModeBadge: { borderRadius: 7, fontSize: 9.5, fontWeight: '800', overflow: 'hidden', paddingHorizontal: 6, paddingVertical: 2 },
-  scheduleSwipeShell: { backgroundColor: '#EEF2F6', borderRadius: 18, minHeight: 70, overflow: 'hidden', position: 'relative' }, scheduleSwipeActions: { bottom: 0, flexDirection: 'row', position: 'absolute', right: 0, top: 0, width: 116 }, scheduleSwipeAction: { alignItems: 'center', flex: 1, justifyContent: 'center' }, scheduleSwipeActionText: { fontSize: 12, fontWeight: '800' }, scheduleDeleteAction: { backgroundColor: '#B86F78' }, scheduleDeleteActionText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' }, scheduleSwipeFront: { minHeight: 70, width: '100%' },
+  scheduleSwipeShell: { backgroundColor: '#FFFFFF', borderRadius: 18, minHeight: 70, overflow: 'hidden', position: 'relative' }, scheduleSwipeActions: { bottom: 5, flexDirection: 'row', gap: 6, paddingLeft: 6, paddingRight: 5, position: 'absolute', right: 0, top: 5, width: 132 }, scheduleSwipeAction: { alignItems: 'center', borderRadius: 14, flex: 1, justifyContent: 'center' }, scheduleSwipeActionText: { fontSize: 12, fontWeight: '800' }, scheduleDeleteAction: { backgroundColor: '#D89096' }, scheduleDeleteActionText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' }, scheduleSwipeFront: { minHeight: 70, width: '100%' },
   scheduleCheckTouch: { alignItems: 'center', justifyContent: 'center', minHeight: 52, paddingHorizontal: 15 }, scheduleCheckPressed: { opacity: 0.68, transform: [{ scale: 0.9 }] }, scheduleCheck: { alignItems: 'center', borderRadius: 7, borderWidth: 1.5, height: 22, justifyContent: 'center', width: 22 }, scheduleCheckGlyph: { height: 12, width: 14 }, scheduleCheckShort: { backgroundColor: '#FFFFFF', borderRadius: 2, height: 2, left: 1, position: 'absolute', top: 6, transform: [{ rotate: '44deg' }], width: 6 }, scheduleCheckLong: { backgroundColor: '#FFFFFF', borderRadius: 2, height: 2, left: 4, position: 'absolute', top: 5, transform: [{ rotate: '-46deg' }], width: 10 }, completedScheduleText: { opacity: 0.48, textDecorationLine: 'line-through' },
   scheduleActions: { alignItems: 'center', flexDirection: 'row', paddingRight: 6 },
   editScheduleButton: { paddingHorizontal: 8, paddingVertical: 15 },
