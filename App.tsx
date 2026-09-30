@@ -489,7 +489,7 @@ export default function App() {
     Animated.timing(tabTranslate, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(() => { tabTransitioning.current = false; });
   }, [activeTab, tabTranslate]);
   const tabSwipe = PanResponder.create({
-    onStartShouldSetPanResponder: () => { calendarTouch.current = false; scheduleCardTouch.current = false; return false; },
+    onStartShouldSetPanResponder: () => false,
     // Let nested horizontal controls (the month pager and schedule cards) claim
     // the gesture first. The page-level tab swipe only handles unclaimed space.
     onMoveShouldSetPanResponder: (_, gesture) => !calendarTouch.current && !scheduleCardTouch.current && !tabTransitioning.current && !modalVisible && !settingsVisible && !shopVisible && !brandMenuVisible && !laterSwipeBlocked && gesture.numberActiveTouches === 1 && Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.8,
@@ -563,13 +563,13 @@ export default function App() {
             {shopEnabled && <Pressable accessibilityLabel="상점 열기" onPress={() => closeBrandMenu(() => setShopVisible(true))} style={({ pressed }) => [styles.brandMenuItem, pressed && { backgroundColor: activeTheme.soft }]}><StoreIcon color={activeTheme.primary} size={20} /><Text style={[styles.brandMenuText, { color: activeTheme.primary, marginLeft: 12 }]}>상점</Text></Pressable>}
           </Animated.View>}
         </View>
-        <HomeScreen theme={activeTheme} now={now} schedules={schedules} onAddSchedule={() => openAddModal(new Date())} onEditSchedule={openEditModal} onDeleteSchedule={deleteSchedule} onToggleSchedule={toggleScheduleCompleted} onCompleteSchedules={completeSchedules} onOpenTodo={() => { const date = new Date(); setSelectedDate(date); setShownMonth(new Date(date.getFullYear(), date.getMonth(), 1)); changeTab('To do'); }} onSwipeBlockedChange={setLaterSwipeBlocked} onTimetableTouch={() => { calendarTouch.current = true; }} />
+        <HomeScreen theme={activeTheme} now={now} schedules={schedules} onAddSchedule={() => openAddModal(new Date())} onEditSchedule={openEditModal} onDeleteSchedule={deleteSchedule} onToggleSchedule={toggleScheduleCompleted} onCompleteSchedules={completeSchedules} onOpenTodo={() => { const date = new Date(); setSelectedDate(date); setShownMonth(new Date(date.getFullYear(), date.getMonth(), 1)); changeTab('To do'); }} onSwipeBlockedChange={setLaterSwipeBlocked} onTimetableTouch={(active) => { calendarTouch.current = active; }} />
       </>}
       {activeTab === 'To do' && <>
         <View style={styles.screenHeader}><View><Text style={[styles.screenEyebrow, { color: activeTheme.primary }]}>DALVI · 오늘을 위한 공간</Text><Text style={[styles.screenTitle, { color: activeTheme.primary }]}>To do</Text></View><Pressable accessibilityLabel="설정 열기" hitSlop={4} onPress={showSettings} style={({ pressed }) => [styles.headerIconButton, pressed && styles.sectionAddButtonPressed]}><SettingsIcon color={activeTheme.primary} /></Pressable></View>
         <ScrollView contentContainerStyle={{ paddingBottom: 16 }} showsVerticalScrollIndicator={false} directionalLockEnabled>
           <View style={styles.todoMonthRow}><Text style={[styles.month, { color: activeTheme.primary }]}>{displayedMonth.getFullYear()}년 {displayedMonth.getMonth() + 1}월</Text><Pressable accessibilityLabel="오늘 날짜로 이동" hitSlop={8} onPress={() => { const date = new Date(); setSelectedDate(date); setShownMonth(new Date(date.getFullYear(), date.getMonth(), 1)); }} style={[styles.todayButton, { backgroundColor: activeTheme.soft }]}><Text style={{ color: activeTheme.primary, fontSize: 12, fontWeight: '700' }}>오늘</Text></Pressable></View>
-          <View onTouchStart={() => { calendarTouch.current = true; }}>
+          <View onTouchCancel={() => { calendarTouch.current = false; }} onTouchEnd={() => { calendarTouch.current = false; }} onTouchStart={() => { calendarTouch.current = true; }}>
             <View style={styles.weekRow}>{weekDays.map((day, index) => <Text key={day} style={[styles.weekHeader, index === 0 && styles.sunday, index === 6 && styles.saturday]}>{day}</Text>)}</View>
             <Animated.View style={[styles.calendarViewport, { height: calendarHeightAnimated }]}>
               <ScrollView bounces={false} contentContainerStyle={styles.calendarPager} contentOffset={{ x: calendarPageWidth, y: 0 }} decelerationRate="fast" directionalLockEnabled horizontal pagingEnabled ref={monthScrollRef} showsHorizontalScrollIndicator={false}

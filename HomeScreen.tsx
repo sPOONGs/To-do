@@ -19,7 +19,7 @@ type Props = {
   onCompleteSchedules: (scheduleIds: string[]) => void;
   onOpenTodo: () => void;
   onSwipeBlockedChange: (blocked: boolean) => void;
-  onTimetableTouch: () => void;
+  onTimetableTouch: (active: boolean) => void;
 };
 const storageKey = '@dalvi/weekly_routines_v1';
 const hourHeight = 28;
@@ -142,7 +142,7 @@ export default function HomeScreen({ theme, now, schedules, onEditSchedule, onTo
         <View style={s.grow}><Text style={[s.heading, ink]}>한 주의 리듬</Text><Text style={s.caption}>매주 돌아오는 시간을 한눈에 만나봐요</Text></View>
         <SoftButton label="일과 추가" onPress={() => openEditor()} disabled={!loaded || busy} reduced={reduceMotion} style={{ backgroundColor: theme.soft }}><Text style={[s.plus, ink]}>＋</Text></SoftButton>
       </View>
-      <View style={s.timetable} onTouchStart={onTimetableTouch}>
+      <View style={s.timetable} onTouchCancel={() => onTimetableTouch(false)} onTouchEnd={() => onTimetableTouch(false)} onTouchStart={() => onTimetableTouch(true)}>
         <View style={s.weekHeader}><View style={s.timeGutter} />{WEEK_DAYS.map(day => <View key={day} style={s.dayHeading}><View style={[s.dayPill, day === now.getDay() && { backgroundColor: theme.soft }]}><Text maxFontSizeMultiplier={1.8} style={[s.dayText, day === now.getDay() ? ink : s.muted]}>{DAY_NAMES[day]}</Text></View></View>)}</View>
         <View style={[s.tableViewport, { height: visibleTableHeight }]}>
           <View style={[s.tableBody, { height: visibleTableHeight }]}>
