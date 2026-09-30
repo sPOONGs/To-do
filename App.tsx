@@ -81,6 +81,7 @@ export default function App() {
   const tabTranslate = useRef(new Animated.Value(0)).current;
   const tabTransitioning = useRef(false);
   const calendarTouch = useRef(false);
+  const scheduleCardTouch = useRef(false);
   const [laterSwipeBlocked, setLaterSwipeBlocked] = useState(false);
   const [selectedDate, setSelectedDate] = useState(today);
   const [shownMonth, setShownMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
@@ -488,8 +489,8 @@ export default function App() {
     Animated.timing(tabTranslate, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(() => { tabTransitioning.current = false; });
   }, [activeTab, tabTranslate]);
   const tabSwipe = PanResponder.create({
-    onStartShouldSetPanResponderCapture: () => { calendarTouch.current = false; return false; },
-    onMoveShouldSetPanResponderCapture: (_, gesture) => !calendarTouch.current && !tabTransitioning.current && !modalVisible && !settingsVisible && !shopVisible && !brandMenuVisible && !laterSwipeBlocked && gesture.numberActiveTouches === 1 && Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.8,
+    onStartShouldSetPanResponderCapture: () => { calendarTouch.current = false; scheduleCardTouch.current = false; return false; },
+    onMoveShouldSetPanResponderCapture: (_, gesture) => !calendarTouch.current && !scheduleCardTouch.current && !tabTransitioning.current && !modalVisible && !settingsVisible && !shopVisible && !brandMenuVisible && !laterSwipeBlocked && gesture.numberActiveTouches === 1 && Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.8,
     onPanResponderMove: (_, gesture) => {
       const index = tabs.indexOf(activeTab);
       const atEdge = (index === 0 && gesture.dx > 0) || (index === tabs.length - 1 && gesture.dx < 0);
@@ -583,7 +584,7 @@ export default function App() {
           </View>
           <View style={[styles.content, styles.compactScheduleContent]}>
             <View style={styles.sectionHeader}><Text style={[styles.sectionTitle, { color: activeTheme.primary }]}>{dateLabel(selectedDate)} 일정</Text><Pressable accessibilityLabel={`${dateLabel(selectedDate)}에 일정 추가`} hitSlop={8} onPress={() => openAddModal(selectedDate)} style={({ pressed }) => [styles.sectionAddButton, { backgroundColor: activeTheme.soft }, pressed && styles.sectionAddButtonPressed]}><Text style={[styles.sectionAddButtonText, { color: activeTheme.primary }]}>＋</Text></Pressable></View>
-            {selectedSchedules.length ? selectedSchedules.map((schedule) => <ScheduleCard key={schedule.id} theme={activeTheme} onDelete={() => deleteSchedule(schedule)} onEdit={() => openEditModal(schedule)} onToggle={() => toggleScheduleCompleted(schedule)} {...schedule} />) : <View style={styles.noSchedule}><Text style={styles.noScheduleText}>아직 비어 있는 하루예요</Text><Pressable onPress={() => openAddModal(selectedDate)} style={{ padding: 8 }}><Text style={[styles.noScheduleAction, { color: activeTheme.primary }]}>이 날짜에 일정 담기</Text></Pressable></View>}
+            {selectedSchedules.length ? selectedSchedules.map((schedule) => <ScheduleCard key={schedule.id} theme={activeTheme} onDelete={() => deleteSchedule(schedule)} onEdit={() => openEditModal(schedule)} onSwipeTouchChange={(active) => { scheduleCardTouch.current = active; }} onToggle={() => toggleScheduleCompleted(schedule)} {...schedule} />) : <View style={styles.noSchedule}><Text style={styles.noScheduleText}>아직 비어 있는 하루예요</Text><Pressable onPress={() => openAddModal(selectedDate)} style={{ padding: 8 }}><Text style={[styles.noScheduleAction, { color: activeTheme.primary }]}>이 날짜에 일정 담기</Text></Pressable></View>}
             {nearestSchedule && <UpcomingCard theme={activeTheme} referenceDate={upcomingReferenceDate} schedule={nearestSchedule} />}
             {/* The banner slot stays available without occupying space before ads launch. */}
             {adsEnabled && <View accessibilityLabel="광고 배너 영역" style={[styles.adBannerSlot, { backgroundColor: activeTheme.soft }]} />}
@@ -754,7 +755,7 @@ function ScheduleDatePicker({ month, mode, selectedKeys, theme, onMonthChange, o
   </View>;
 }
 
-function ScheduleCard({ time, title, category, color, mode, completed, onToggle, onEdit, onDelete, theme }: Schedule & { onToggle: () => void; onEdit: () => void; onDelete: () => void; theme: AppTheme }) {
+function ScheduleCard({ time, title, category, color, mode, completed, onToggle, onEdit, onDelete, onSwipeTouchChange, theme }: Schedule & { onToggle: () => void; onEdit: () => void; onDelete: () => void; onSwipeTouchChange: (active: boolean) => void; theme: AppTheme }) {
   const actionWidth = 116;
   const reduceMotion = useReducedMotion();
   const translateX = useRef(new Animated.Value(0)).current;
@@ -778,7 +779,7 @@ function ScheduleCard({ time, title, category, color, mode, completed, onToggle,
     if (reduceMotion) { translateX.setValue(0); action(); return; }
     Animated.timing(translateX, { duration: 130, easing: Easing.out(Easing.cubic), toValue: 0, useNativeDriver: true }).start(({ finished }) => { if (finished) action(); });
   };
-  return <View style={[styles.scheduleSwipeShell, styles.compactScheduleCard]}>
+  return <View onTouchCancel={() => onSwipeTouchChange(false)} onTouchEnd={() => onSwipeTouchChange(false)} onTouchStart={() => onSwipeTouchChange(true)} style={[styles.scheduleSwipeShell, styles.compactScheduleCard]}>
     <View style={styles.scheduleSwipeActions}><Pressable accessibilityLabel={`${title} 수정`} onPress={() => runAction(onEdit)} style={[styles.scheduleSwipeAction, { backgroundColor: theme.soft }]}><Text style={[styles.scheduleSwipeActionText, { color: theme.primary }]}>수정</Text></Pressable><Pressable accessibilityLabel={`${title} 삭제`} onPress={() => runAction(onDelete)} style={[styles.scheduleSwipeAction, styles.scheduleDeleteAction]}><Text style={styles.scheduleDeleteActionText}>삭제</Text></Pressable></View>
     <Animated.View {...pan.panHandlers} style={[styles.scheduleCard, styles.scheduleSwipeFront, { transform: [{ translateX }] }]}><View style={[styles.colorBar, { backgroundColor: color }]} /><View style={styles.timeWrap}><Text style={[styles.time, completed && styles.completedScheduleText]}>{time}</Text></View><View style={styles.scheduleTextWrap}><Text style={[styles.scheduleTitle, { color: theme.primary }, completed && styles.completedScheduleText]}>{title}</Text><View style={styles.scheduleMetaRow}><Text style={[styles.scheduleModeBadge, { backgroundColor: theme.soft, color: theme.primary }]}>{scheduleModeLabel(mode)}</Text><Text style={styles.category}>{category}</Text></View></View><Pressable accessibilityLabel={`${title} ${completed ? '완료 취소' : '완료'}`} accessibilityRole="checkbox" accessibilityState={{ checked: !!completed }} hitSlop={4} onPress={onToggle} style={({ pressed }) => [styles.scheduleCheckTouch, pressed && styles.scheduleCheckPressed]}><View style={[styles.scheduleCheck, { borderColor: completed ? theme.primary : theme.secondary, backgroundColor: completed ? theme.primary : '#FFFFFF' }]}>{completed && <View style={styles.scheduleCheckGlyph}><View style={styles.scheduleCheckShort} /><View style={styles.scheduleCheckLong} /></View>}</View></Pressable></Animated.View>
   </View>;
