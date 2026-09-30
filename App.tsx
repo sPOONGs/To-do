@@ -489,8 +489,10 @@ export default function App() {
     Animated.timing(tabTranslate, { toValue: 0, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(() => { tabTransitioning.current = false; });
   }, [activeTab, tabTranslate]);
   const tabSwipe = PanResponder.create({
-    onStartShouldSetPanResponderCapture: () => { calendarTouch.current = false; scheduleCardTouch.current = false; return false; },
-    onMoveShouldSetPanResponderCapture: (_, gesture) => !calendarTouch.current && !scheduleCardTouch.current && !tabTransitioning.current && !modalVisible && !settingsVisible && !shopVisible && !brandMenuVisible && !laterSwipeBlocked && gesture.numberActiveTouches === 1 && Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.8,
+    onStartShouldSetPanResponder: () => { calendarTouch.current = false; scheduleCardTouch.current = false; return false; },
+    // Let nested horizontal controls (the month pager and schedule cards) claim
+    // the gesture first. The page-level tab swipe only handles unclaimed space.
+    onMoveShouldSetPanResponder: (_, gesture) => !calendarTouch.current && !scheduleCardTouch.current && !tabTransitioning.current && !modalVisible && !settingsVisible && !shopVisible && !brandMenuVisible && !laterSwipeBlocked && gesture.numberActiveTouches === 1 && Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.8,
     onPanResponderMove: (_, gesture) => {
       const index = tabs.indexOf(activeTab);
       const atEdge = (index === 0 && gesture.dx > 0) || (index === tabs.length - 1 && gesture.dx < 0);
