@@ -1,30 +1,54 @@
 {
   "expo": {
     "name": "Dalvi",
+    "owner": "spoongs",
     "slug": "schedule-app",
     "version": "1.0.0",
+    "scheme": "dalvi",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/dalvi-app-icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.spoongs.dalvi",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.spoongs.dalvi",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#F8FAFC",
+        "foregroundImage": "./assets/dalvi-adaptive-icon.png",
+        "monochromeImage": "./assets/dalvi-adaptive-icon.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/dalvi-app-icon.png"
+    },
+    "experiments": {
+      "baseUrl": "/To-do"
     },
     "plugins": [
       "@react-native-community/datetimepicker",
       "expo-font",
-      "expo-splash-screen"
-    ]
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F8FAFC",
+          "image": "./assets/dalvi-loading-logo.png",
+          "imageWidth": 220,
+          "resizeMode": "contain"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bad589d4-0bf4-4068-b492-f68f80cc1a80"
+      }
+    }
   }
 }
